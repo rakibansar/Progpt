@@ -48,3 +48,7 @@ jobs:
         name: junit-reports
         path: target/surefire-reports/
 
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      with:
+        path: target/surefire-reports
