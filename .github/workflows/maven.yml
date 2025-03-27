@@ -43,7 +43,7 @@ jobs:
 
     - name: Run TestNG Tests
       run: mvn test -Dbrowser=chrome -Durl=https://staging.progpt.biz/login
-
+  
     - name: Publish Test Results
       uses: actions/upload-artifact@v4 # Changed from v3 to v4
       if: always()
