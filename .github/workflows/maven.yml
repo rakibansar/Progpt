@@ -1,53 +1,50 @@
-name: Run Selenium TestNG Tests
+
+
+name: Selenium Tests with TestNG
 
 on:
   push:
-    branches:
-      - main  # Or your main branch name
+    branches: [ "main" ] # Run tests on pushes to the 'main' branch
   pull_request:
-    branches:
-      - main  # Or your main branch name
+    branches: [ "main" ] # Run tests on pull requests to the 'main' branch
 
 jobs:
-  test:
-    runs-on: ubuntu-latest # Or windows-latest, macos-latest
+  build:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up JDK 17 # Or your desired JDK version
+    - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        java-version: '17'
-        distribution: 'temurin'
+        java-version: '23' # Use Java 23
+        distribution: 'temurin' 
+    # or 'adopt' or 'liberica' or 'eclipse' depending on your preference
+    # ... other options as before ... 
 
-    - name: Cache Maven Packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
-
-    - name: Install Chrome and ChromeDriver
+    - name: Build with Maven
       run: |
-        sudo apt-get update
-        sudo apt-get install -y google-chrome-stable
-        CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
-        echo "Chrome Major Version: $CHROME_VERSION"
-        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-        echo "ChromeDriver Version: $CHROMEDRIVER_VERSION"
-        wget "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
-        unzip chromedriver_linux64.zip
-        sudo mv chromedriver /usr/local/bin/
-        
+        mvn clean install 
 
-    - name: Run TestNG Tests from testng.xml
-      run: mvn test -Dsurefire.suiteXmlFiles=testng.xml
+    - name: Run Tests with TestNG
+      run: |
+        mvn test 
 
-    - name: Publish Test Results
-      uses: actions/upload-artifact@v4
-      if: always()
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v3
       with:
         name: test-results
-        path: target/surefire-reports
+        path: target/surefire-reports 
+
+    - name: Generate JUnit Reports
+      run: |
+        mvn surefire-report:report
+
+    - name: Upload JUnit Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: junit-reports
+        path: target/surefire-reports/
+
