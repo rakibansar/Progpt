@@ -1,4 +1,4 @@
-name: Run TestNG Tests
+name: Run Selenium TestNG Tests
 
 on:
   push:
@@ -16,11 +16,11 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Set up JDK 17 #or other JDK version
+    - name: Set up JDK 17 # Or your desired JDK version
       uses: actions/setup-java@v3
       with:
         java-version: '17'
-        distribution: 'temurin' #or other distribution
+        distribution: 'temurin'
 
     - name: Cache Maven Packages
       uses: actions/cache@v3
@@ -29,14 +29,24 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
+    - name: Install Chrome and ChromeDriver
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
+        echo "Chrome Major Version: $CHROME_VERSION"
+        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+        echo "ChromeDriver Version: $CHROMEDRIVER_VERSION"
+        wget "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
+        unzip chromedriver_linux64.zip
+        sudo mv chromedriver /usr/local/bin/
 
+    - name: Run TestNG Tests from testng.xml
+      run: mvn test -Dsurefire.suiteXmlFiles=testng.xml
 
-    - name: Run TestNG Tests
-      run: mvn test -Dbrowser=chrome -Durl=https://staging.progpt.biz/login
-  
     - name: Publish Test Results
-      uses: actions/upload-artifact@v4 # Changed from v3 to v4
+      uses: actions/upload-artifact@v4
       if: always()
       with:
-       name: test-results
-       path: target/surefire-reports
+        name: test-results
+        path: target/surefire-reports
