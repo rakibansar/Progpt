@@ -22,7 +22,7 @@ jobs:
 
       - name: Delete Maven TestNG Cache (Force Fresh Download)
         run: |
-          rm -rf ~/.m2/repository/org/testng
+          del /s /q %USERPROFILE%\.m2\repository\org\testng
 
       - name: Build with Maven
         run: mvn clean test --file pom.xml
